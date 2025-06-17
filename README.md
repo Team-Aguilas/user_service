@@ -1,67 +1,77 @@
-# User Service - FastAPI Backend
+# Servicio de Usuarios y Autenticación - Marketplace API
 
-Este módulo define una capa de servicios asincrónica para la gestión de usuarios en una base de datos MongoDB utilizando `motor`. También se encarga del hash de contraseñas mediante funciones de seguridad personalizadas.
+Este microservicio es parte de la aplicación "Marketplace de Frutas y Verduras". Su responsabilidad es gestionar todo lo relacionado con los usuarios y la autenticación:
 
-## 📂 Ubicación
+## Características Principales
 
-`app/services/user_service.py`
+-   Registro de nuevos usuarios.
+-   Login de usuarios mediante email y contraseña.
+-   Generación de tokens de acceso JWT (JSON Web Tokens).
+-   Obtención de datos del usuario autenticado (`/me`).
+-   Operaciones CRUD para la gestión de usuarios (protegidas para superusuarios).
 
-## 🚀 Funcionalidades principales
+## Tecnologías Utilizadas
 
-Este archivo proporciona funciones para manejar usuarios en la colección `users` de MongoDB.
+-   **Framework:** FastAPI
+-   **Base de Datos:** MongoDB (a través de Motor)
+-   **Autenticación:** JWT con `python-jose`
+-   **Hashing de Contraseñas:** `passlib` con `bcrypt`
+-   **Lenguaje:** Python 3.11+
+-   **Validación de Datos:** Pydantic
 
-### 📋 Operaciones disponibles
+## Configuración y Puesta en Marcha
 
-- **`get_user_by_email(db, email)`**  
-  Retorna un usuario a partir de su dirección de correo electrónico.
+### Prerrequisitos
 
-- **`get_user_by_id(db, user_id)`**  
-  Busca un usuario por su ID. Devuelve `None` si no lo encuentra o si el ID no es válido.
+-   Python 3.11 o superior.
+-   Una instancia de MongoDB corriendo.
+-   Tener el código del `common/` en el directorio raíz del proyecto.
 
-- **`create_user(db, user_in)`**  
-  Crea un nuevo usuario, encriptando su contraseña antes de almacenarlo.
+### 1. Configuración del Entorno
 
-- **`update_user(db, user_id, user_in)`**  
-  Actualiza la información de un usuario, incluyendo su contraseña si se proporciona.
+Este servicio se ejecuta desde la raíz del monorepo (`market_place_project/`).
 
-- **`get_all_users(db, skip=0, limit=100)`**  
-  Lista paginada de todos los usuarios registrados.
+1.  **Variables de Entorno:**
+    Crea un archivo `.env` en la raíz de este servicio (`users_service/.env`) con el siguiente contenido. **¡Asegúrate de usar una `SECRET_KEY` segura!**
+    ```env
+    PROJECT_NAME="Servicio de Usuarios"
+    MONGO_URI="mongodb://localhost:27017/"
+    MONGO_DB_NAME="marketplace_db"
+    SECRET_KEY="tu_clave_secreta_muy_larga_y_segura_aqui"
+    ALGORITHM="HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES=30
+    ```
 
-## 🧱 Modelos utilizados
+2.  **Dependencias:**
+    Desde la raíz del proyecto (`market_place_project/`), instala las dependencias:
+    ```bash
+    # Activa tu entorno virtual principal
+    pip install -r users_service/requirements.txt
+    ```
 
-- `UserCreate`
-- `UserUpdate`
-- `UserInDB`
+### 2. Ejecución del Servicio
 
-> Asegúrate de que los modelos estén correctamente definidos en `app.models` y manejen el uso de `ObjectId` y `alias`.
+Para ejecutar el servidor, abre una **nueva terminal** en la **carpeta raíz del proyecto (`market_place_project/`)** y sigue estos pasos:
 
-## 🔐 Seguridad
+1.  **Activa tu entorno virtual.**
 
-Este servicio hace uso de la función `get_password_hash` desde `app.security` para almacenar contraseñas de forma segura.
+2.  **Configura el `PYTHONPATH`**:
+    ```powershell
+    # En Windows (PowerShell)
+    $env:PYTHONPATH="."
+    ```
+    ```bash
+    # En Linux o macOS
+    export PYTHONPATH="."
+    ```
 
-## 🛠 Requisitos
+3.  **Inicia el servidor Uvicorn** en el puerto `8002`:
+    ```bash
+    uvicorn users_service.app.main:app --reload --port 8002
+    ```
 
-- Python 3.10+
-- `motor`
-- `pydantic`
-- `bson`
-- Función de hashing (`get_password_hash`) implementada en el módulo de seguridad
+### Documentación de la API
 
-## 📌 Notas
+Una vez que el servicio esté corriendo, la documentación interactiva (Swagger UI) estará disponible en:
 
-- Las funciones son **asincrónicas** para integrarse de forma eficiente con FastAPI.
-- Los campos de contraseña se almacenan como `hashed_password`.
-
-## ✅ Ejemplo de uso
-
-```python
-from app.services.user_service import create_user
-from app.models import UserCreate
-
-new_user = UserCreate(
-    email="usuario@ejemplo.com",
-    full_name="Nombre Apellido",
-    password="contraseña123"
-)
-
-user = await create_user(db, new_user)
+[http://localhost:8002/docs](http://localhost:8002/docs)
