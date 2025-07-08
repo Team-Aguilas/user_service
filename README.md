@@ -1,77 +1,123 @@
-# Servicio de Usuarios y Autenticación - Marketplace API
+# Marketplace de Frutas y Verduras (Arquitectura de Microservicios)
 
-Este microservicio es parte de la aplicación "Marketplace de Frutas y Verduras". Su responsabilidad es gestionar todo lo relacionado con los usuarios y la autenticación:
+Este es un proyecto full-stack para una aplicación de marketplace, diseñado con una arquitectura de microservicios en el backend y una interfaz de usuario moderna en el frontend.
 
-## Características Principales
+## Arquitectura del Proyecto
 
--   Registro de nuevos usuarios.
--   Login de usuarios mediante email y contraseña.
--   Generación de tokens de acceso JWT (JSON Web Tokens).
--   Obtención de datos del usuario autenticado (`/me`).
--   Operaciones CRUD para la gestión de usuarios (protegidas para superusuarios).
+El proyecto está dividido en tres componentes principales que se ejecutan de forma independiente:
+
+-   **`products_service`**: Un microservicio de FastAPI (Python) que maneja toda la lógica de productos: CRUD, subida de imágenes y autorización por propietario.
+-   **`users_service`**: Un microservicio de FastAPI (Python) que maneja el registro de usuarios, la autenticación (login) y la generación de tokens JWT.
+-   **`frontend`**: Una aplicación de React (JavaScript) construida con Vite y Material-UI que consume los dos servicios de backend para proporcionar la interfaz de usuario.
+-   **`common`**: Un directorio que contiene el código compartido (modelos Pydantic) utilizado por ambos servicios de backend.
 
 ## Tecnologías Utilizadas
 
--   **Framework:** FastAPI
--   **Base de Datos:** MongoDB (a través de Motor)
--   **Autenticación:** JWT con `python-jose`
--   **Hashing de Contraseñas:** `passlib` con `bcrypt`
--   **Lenguaje:** Python 3.11+
--   **Validación de Datos:** Pydantic
+-   **Backend**: Python, FastAPI, Motor, Pydantic, Uvicorn
+-   **Frontend**: React, Vite, Material-UI (MUI), Axios
+-   **Base de Datos**: MongoDB
+-   **Autenticación**: JWT (python-jose), Passlib (bcrypt)
 
-## Configuración y Puesta en Marcha
+## Prerrequisitos
 
-### Prerrequisitos
+Asegúrate de tener instalado lo siguiente en tu sistema:
+-   Python 3.11+ y pip
+-   Node.js 18.x+ y npm
+-   MongoDB Server (corriendo localmente o en un servicio como MongoDB Atlas)
 
--   Python 3.11 o superior.
--   Una instancia de MongoDB corriendo.
--   Tener el código del `common/` en el directorio raíz del proyecto.
+## Guía de Instalación y Configuración
 
-### 1. Configuración del Entorno
-
-Este servicio se ejecuta desde la raíz del monorepo (`market_place_project/`).
-
-1.  **Variables de Entorno:**
-    Crea un archivo `.env` en la raíz de este servicio (`users_service/.env`) con el siguiente contenido. **¡Asegúrate de usar una `SECRET_KEY` segura!**
-    ```env
-    PROJECT_NAME="Servicio de Usuarios"
-    MONGO_URI="mongodb://localhost:27017/"
-    MONGO_DB_NAME="marketplace_db"
-    SECRET_KEY="tu_clave_secreta_muy_larga_y_segura_aqui"
-    ALGORITHM="HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES=30
+1.  **Clonar el Repositorio (si aplica):**
+    ```bash
+    git clone <url-del-repositorio>
+    cd market_place_project
     ```
 
-2.  **Dependencias:**
-    Desde la raíz del proyecto (`market_place_project/`), instala las dependencias:
+2.  **Entorno Virtual de Python:**
+    Se recomienda usar un único entorno virtual en la raíz del proyecto.
     ```bash
-    # Activa tu entorno virtual principal
+    python -m venv venv
+    .\venv\Scripts\Activate  # En Windows (PowerShell)
+    # source venv/bin/activate  # En Linux/macOS
+    ```
+
+3.  **Instalar Dependencias del Backend:**
+    Instala los requerimientos para ambos servicios:
+    ```bash
+    pip install -r products_service/requirements.txt
     pip install -r users_service/requirements.txt
     ```
 
-### 2. Ejecución del Servicio
-
-Para ejecutar el servidor, abre una **nueva terminal** en la **carpeta raíz del proyecto (`market_place_project/`)** y sigue estos pasos:
-
-1.  **Activa tu entorno virtual.**
-
-2.  **Configura el `PYTHONPATH`**:
-    ```powershell
-    # En Windows (PowerShell)
-    $env:PYTHONPATH="."
-    ```
+4.  **Instalar Dependencias del Frontend:**
     ```bash
-    # En Linux o macOS
-    export PYTHONPATH="."
+    cd frontend
+    npm install
+    cd ..
     ```
 
-3.  **Inicia el servidor Uvicorn** en el puerto `8002`:
-    ```bash
-    uvicorn users_service.app.main:app --reload --port 8002
-    ```
+5.  **Configurar Variables de Entorno:**
+    Crea un archivo `.env` dentro de `products_service` y otro dentro de `users_service` con el siguiente contenido:
 
-### Documentación de la API
+    -   **`products_service/.env`**:
+        ```env
+        PROJECT_NAME="Servicio de Productos"
+        MONGO_URI="mongodb://localhost:27017/"
+        MONGO_DB_NAME="marketplace_db"
+        SECRET_KEY="tu_clave_secreta_muy_larga_y_segura_aqui"
+        ALGORITHM="HS256"
+        ACCESS_TOKEN_EXPIRE_MINUTES=30
+        ```
 
-Una vez que el servicio esté corriendo, la documentación interactiva (Swagger UI) estará disponible en:
+    -   **`users_service/.env`**:
+        ```env
+        PROJECT_NAME="Servicio de Usuarios"
+        MONGO_URI="mongodb://localhost:27017/"
+        MONGO_DB_NAME="marketplace_db"
+        SECRET_KEY="tu_clave_secreta_muy_larga_y_segura_aqui"
+        ALGORITHM="HS256"
+        ACCESS_TOKEN_EXPIRE_MINUTES=30
+        ```
+    **Importante:** La `SECRET_KEY` debe ser idéntica en ambos archivos.
 
-[http://localhost:8002/docs](http://localhost:8002/docs)
+## Cómo Ejecutar la Aplicación Completa
+
+Necesitarás **tres terminales** separadas, todas ubicadas en la carpeta raíz (`market_place_project/`).
+
+#### **Terminal 1: Iniciar Servicio de Productos**
+```powershell
+# Activa el entorno virtual
+.\venv\Scripts\Activate
+
+# Configura el PYTHONPATH para encontrar la carpeta 'common'
+$env:PYTHONPATH="."
+
+# Inicia el servidor en el puerto 8001
+uvicorn products_service.app.main:app --reload --port 8001
+```
+
+#### **Terminal 2: Iniciar Servicio de Usuarios**
+```powershell
+# Activa el entorno virtual
+.\venv\Scripts\Activate
+
+# Configura el PYTHONPATH (necesario en cada terminal)
+$env:PYTHONPATH="."
+
+# Inicia el servidor en el puerto 8002
+uvicorn users_service.app.main:app --reload --port 8002
+```
+
+#### **Terminal 3: Iniciar Frontend**
+```powershell
+# Navega a la carpeta del frontend
+cd frontend
+
+# Inicia el servidor de desarrollo de Vite
+npm run dev
+```
+
+### Acceso a la Aplicación
+
+-   **Frontend**: Abre tu navegador en la URL que indique Vite (usualmente `http://localhost:5173`).
+-   **Documentación API Productos**: `http://localhost:8001/docs`
+-   **Documentación API Usuarios**: `http://localhost:8002/docs`
