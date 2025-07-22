@@ -9,3 +9,4 @@ python-jose[cryptography]
 email-validator
 passlib[bcrypt]    
 python-jose[cryptography]
+prometheus-fastapi-instrumentator
